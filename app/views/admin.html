@@ -1,0 +1,136 @@
+<md-toolbar class="md-table-toolbar md-default" ng-show="!selected.length">
+    <div class="md-toolbar-tools">
+        <span translate="menus.admin.label">Proveedores</span>
+        <div flex></div>
+        <md-icon md-menu-origin md-svg-icon="images/icons/ic_refresh_24px.svg"></md-icon>
+        <form style="" class="ng-valid flex ng-valid-parse ng-dirty" flex="">
+            <input style="" aria-invalid="false" class="ng-valid ng-touched ng-valid-parse ng-dirty" placeholder="search" type="text" ng-model="filter.search">
+        </form>
+        <md-button ng-click="logout()">
+            <span translate="menus.admin.table.close">Cerrar</span>
+            <md-tooltip md-direction="bottom">
+                <span translate="menus.admin.table.closetooltip">Cerrar</span>
+            </md-tooltip>
+        </md-button>
+        <md-button class="buttonngFinder" ng-click="UserEdit($event)">
+            <md-icon md-svg-src="images/icons/ic_person_24px.svg"></md-icon>
+            <md-tooltip md-direction="bottom">
+                <span translate="menus.admin.editUser.tooltip">Editar</span>
+            </md-tooltip>
+        </md-button>
+        <md-button ng-click="hideCheckboxes = !hideCheckboxes" class="buttonngFinder">
+            <md-icon md-svg-src="images/icons/ic_build_24px.svg"></md-icon>
+            <md-tooltip md-direction="bottom">
+                <span>{{ 'menus.admin.table.' + enableSelection() | translate}}</span>
+            </md-tooltip>
+        </md-button>
+        <md-button ng-click="hideHead = !hideHead" class="buttonngFinder">
+            <md-icon md-svg-src="images/icons/ic_launch_24px.svg"></md-icon>
+            <md-tooltip md-direction="bottom">
+                <span>{{'menus.admin.table.' + enableHead() | translate}}</span>
+            </md-tooltip>
+        </md-button>
+        <md-button ng-click="showAdvanced($event)">
+            <span translate="menus.admin.table.add">Nuevo</span>
+            <md-tooltip md-direction="bottom">
+                <span translate="menus.admin.table.addtooltip">Cerrar</span>
+            </md-tooltip>
+            <md-icon md-menu-origin md-svg-icon="images/icons/ic_insert_drive_file_24px.svg"></md-icon>
+        </md-button>
+    </div>
+</md-toolbar>
+<md-toolbar class="md-table-toolbar alternate" ng-show="selected.length">
+    <div class="md-toolbar-tools">
+        <span>{{selected.length}} {{selected.length > 1 ? 'items' : 'item'}} selected</span>
+        <span flex></span>
+        <md-button class="md-fab" aria-label="delete" ng-click="delMultiple()">
+            <ng-md-icon icon="delete" style="fill:fast_rewind"></ng-md-icon>
+            <md-tooltip>
+                Eliminar seleccionados
+            </md-tooltip>
+        </md-button>
+        <span flex="3"></span>
+    </div>
+</md-toolbar>
+<md-table-container ng-init="loadProveedores()">
+    <table data-md-table data-md-row-select="!hideCheckboxes" data-ng-model="selected" md-progress="promise" class="tableViewList">
+        <thead ng-if="!hideHead" md-head data-md-order="query.order" md-on-reorder="onReorder">
+            <tr md-row>
+                <th md-column md:order:by="name"><span translate="menus.admin.table.name">Nombre</span></th>
+                <th md-column md:order:by="type"><span translate="menus.admin.table.type">Type</span></th>
+                <th md-column data-md-numeric data-md-order-by="uri"><span translate="menus.admin.table.dir">Direccion</span></th>
+                <th md-column data-md-numeric data-md-order-by="dirscan"><span translate="menus.admin.table.dirScan">Dir Scan</span></th>        
+                <th md-column data-md-numeric data-md-order-by="create" data-hide-sm><span translate="menus.admin.table.date">Creado</span></th>
+                <th md-column data-md-order-by="comment">
+                    <span translate="menus.admin.table.actions.label">Acciones</span>
+                </th>
+            </tr>
+        </thead>
+        <tbody md-body>
+            <tr md-row md:select="dessert" data-md-on-select="log" md-on-deselect="deselect" x-md-auto-select="!blah"  data-ng-repeat="dessert in desserts.data| filter: filter.search | orderBy: query.order | limitTo: query.limit : (query.page - 1) * query.limit">
+                <td md-cell>{{dessert.name}}</td>
+                <td md-cell>{{ dessert.type}}</td>        
+                <td md-cell>{{dessert.uri}}</td>
+                <td md-cell ng-click="editComment($event, dessert)" ng-class="{'md-placeholder': !dessert.dirscan}">
+                    {{dessert.dirscan|| 'Add a comment'}}
+                </td>
+                <td md-cell hide-sm>{{dessert.create}}</td>
+                <td md-cell >
+        <md-menu md-position-mode="target-right target" >
+            <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+                <md-icon md-menu-origin md-svg-icon="images/icons/ic_build_24px.svg"></md-icon>
+            </md-button>
+            <md-menu-content width="4" >
+                <md-menu-item ng-repeat="item in ['del', 'edit', 'sincro']">
+                    <md-button ng-click="actionsAdmin($event, item, dessert)">
+                        <div layout="row">
+                            <p flex>{{ 'menus.admin.table.actions.' + item | translate }}</p>
+                            <md-icon md-menu-align-target md-svg-icon="images/icons/octicon-repo.svg" style="margin: auto 3px auto 0;"></md-icon>
+                        </div>
+                    </md-button>
+                </md-menu-item>
+                <md-menu-item>
+                    <md-button ng-click="actionsAdmin($event, 'escan', dessert)">
+                        <div layout="row">
+                            <p flex>Escanear</p>
+                            <md-icon md-menu-align-target md-svg-icon="images/icons/ic_refresh_24px.svg" style="margin: auto 3px auto 0;"></md-icon>
+                        </div>
+                        <md-tooltip>
+                            Escanear el proveedor
+                        </md-tooltip>
+                    </md-button>
+                    <md-button ng-if="dessert.type==='http'" ng-click="actionsAdmin($event, 'continueScanner', dessert)" >
+                        <div layout="row">
+                            <p flex>Continuar</p>
+                            <md-icon md-menu-align-target md-svg-icon="images/icons/ic_refresh_24px.svg" style="margin: auto 3px auto 0;"></md-icon>
+                        </div>
+                        <md-tooltip>
+                            Continuar el scaneo
+                        </md-tooltip>
+                    </md-button>
+                </md-menu-item>
+            </md-menu-content>
+        </md-menu>
+        </td>
+        </tr>
+        </tbody>
+    </table>
+</md-table-container>
+<data-md-table-pagination md-limit="query.limit" md-page="query.page" md-total="{{desserts.count}}" md-on-paginate="onPaginate" md-page-select></data-md-table-pagination>
+<md-content layout-gt-sm="row" layout-padding >
+    <md-radio-group ng-model="proxy.enabled">
+        <md-radio-button value="active" class="md-primary">Usar Proxy</md-radio-button>
+        <md-radio-button value="none"> No usar Proxy </md-radio-button>
+    </md-radio-group>
+    <div ng-show="proxy.enabled !== 'none'">
+        <md-input-container>
+            <label>Url</label>
+            <input ng-model="proxy.url">
+        </md-input-container>
+        <md-input-container>
+            <label>Puerto</label>
+            <input ng-model="proxy.port">
+        </md-input-container>       
+    </div>
+    <md-button class="add-tab md-primary md-raised" ng-click="ConfigAdminUpdate()">Guardar</md-button>
+</md-content>

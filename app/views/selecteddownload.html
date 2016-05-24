@@ -1,0 +1,25 @@
+<md-dialog aria-label="Mango (Fruit)" ng-cloak>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Listado de archivos a descargar</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="images/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <ol style="padding-left: 40px;">
+            <li class="md-3-line" style="min-height: 8px; " ng-repeat="item in listadoFilesDownload track by $index">
+                <h5><a href="{{ item.base_url + '/' + item.file.name}}">{{ item.name}}</a></h5>
+            </li>
+        </ol>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <span flex></span>
+        <md-button ng-click="cancel()">
+            Cancelar
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>
+

@@ -1,0 +1,32 @@
+<div flex ng-cloak >
+    <section layout="row" layout-sm="column" layout-wrap>
+        <md-button class="md-raised"
+                   ng-repeat="tile in tab.files track by $index" 
+                   ng-if="$index<tab.paso"
+                   ng-click="findFolder(tile.file, tab)" 
+                   ng-cloak 
+                   ng-mouseover="tile.ico = icons[tile.icon].active;"
+                   ng-mouseleave="tile.ico = icons[tile.icon].desactive;"
+                   style="width: 120px"
+                   >
+            <ng-md-icon options='{"duration": 375, "rotation": "none"}'  icon="{{tile.ico}}" style="fill:fast_rewind"  ></ng-md-icon>
+            <md-tooltip md-direction="bottom">
+                <span>{{tile.name}}</span>
+            </md-tooltip>
+            <br>
+            <span>{{showOnly(tile.name)}}</span>                 
+        </md-button>
+    </section>
+    <div ng-show="tab.files.length == 0" style="text-align: center">
+        directorio vacio
+    </div>
+</div>
+
+
+
+
+
+
+
+
+

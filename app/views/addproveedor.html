@@ -1,0 +1,161 @@
+<md-dialog aria-label="Mango (Fruit)"  ng-cloak>
+    <form name="provForm">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Nuevo proveedor</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="cancel()">
+                    <md-icon md-svg-src="images/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <md-content layout-padding>
+                    <div>                           
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Nombre</label>
+                                <input
+                                    name="name"
+                                    ng-model="prov.name"
+                                    md-maxlength="20"
+                                    ng-pattern="/^[0-9A-Za-zñáéíóúÑÁÉÍÓÚ\s]+$/"
+                                    ng-minlength="3"
+                                    required
+                                    >
+                                <div ng-messages="provForm.name.$error" role="alert" multiple>
+                                    <div ng-show="provForm.name.$error.required" ng-message="required" class="my-message">
+                                        requerido
+                                    </div>
+                                    <div ng-show="provForm.name.$error.pattern" ng-message="pattern" class="my-message">
+                                        Solo alfanumerios 
+                                    </div>
+                                    <div ng-show="provForm.name.$error.maxlength" ng-message="md-maxlength" class="my-message">
+                                        no mas de 20
+                                    </div>
+                                    <div ng-show="provForm.name.$error.minlength" ng-message="md-maxlength" class="my-message">
+                                        mas de 3
+                                    </div>
+                                </div>
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Direccion</label>
+                                <input ng-model="prov.uri">
+                            </md-input-container>
+                        </div>                        
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Directorio Scanner</label>
+                                <input ng-model="prov.dirscan">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Tipo</label>
+                                <md-select ng-model="prov.type" ng-init="prov.type = prov.type || 'ftp'">
+                                    <md-option ng-repeat="pro in tiposProveedores" value="{{pro}}">
+                                        {{pro}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Numero de hilos concurrentes</label>
+                                <input required 
+                                       ng-init="prov.thread = prov.thread || 2"
+                                       type="number"
+                                       step="any"
+                                       name="thread"
+                                       ng-model="prov.thread" 
+                                       min="2"
+                                       max="15"
+                                       />
+                                <div ng-messages="rate.thread.$error" role="alert" multiple>
+                                    <div ng-show="provForm.thread.$error.required" ng-message="required" class="my-message">
+                                        requerido
+                                    </div>
+                                    <div ng-show="provForm.thread.$error.max" ng-message="max" class="my-message">
+                                        no mas de 15 hilos
+                                    </div>
+                                    <div ng-show="provForm.thread.$error.min" ng-message="min" class="my-message">
+                                        mas de 1
+                                    </div>
+                                </div>
+                            </md-input-container>                            
+                        </div>
+                        <div layout-gt-sm="row" ng-if="prov.type !== 'http'">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>User</label>
+                                <input ng-model="prov.user">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Password</label>
+                                <input type="password" ng-model="prov.password">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Puerto</label>
+                                <input name="port" ng-init="prov.port = prov.port || 21" ng-model="prov.port" placeholder="21"
+                                       required ng-pattern="/^([0-9])*$/" md-maxlength="5">
+                                <div ng-messages="provForm.port.$error" role="alert" multiple>
+                                    <div ng-show="provForm.port.$error.required" ng-message="required" class="my-message">
+                                        requerido
+                                    </div>
+                                    <div ng-show="provForm.port.$error.pattern" ng-message="pattern" class="my-message">
+                                        Solo numeros
+                                    </div>
+                                    <div ng-show="provForm.port.$error.maxlength" ng-message="md-maxlength" class="my-message">
+                                        no mas de 5
+                                    </div>
+                                </div>
+                            </md-input-container>
+                        </div>
+                        <div layout-gt-sm="row" ng-if="prov.type == 'http'">
+                            <table>                           
+                                <tr>
+                                    <th>
+                                <md-input-container class="md-block">
+                                    <label>Query Name</label>
+                                    <input ng-model="prov.query">
+                                </md-input-container>
+                                </th>
+                                <th>
+                                <md-input-container class="md-block">
+                                    <label>Query Date</label>
+                                    <input ng-init="prov.queryDate=prov.queryDate||''" ng-model="prov.queryDate">
+                                </md-input-container>
+                                </th>
+                                <th>
+                                <md-input-container class="md-block">
+                                    <label>Query Size</label>
+                                    <input ng-model="prov.querySize">
+                                </md-input-container>
+                                </th>
+                                </tr>
+                            </table>
+                        </div>  
+                        <div layout-gt-sm="row" ng-if="prov.type == 'http'">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>Ignore directory</label>
+                                <input ng-model="prov.ignore">
+                            </md-input-container>
+                        </div>                       
+                    </div>
+                </md-content>
+                <div ng-show="error" ng-click="error = false">
+                    {{ error}}
+                </div>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button href="https://rice.uci.cu/" target="_blank" md-autofocus>
+                Rice
+            </md-button>
+            <span flex></span>
+            <md-button ng-click="cancel()">
+                Cancelar
+            </md-button>
+            <md-button ng-disabled="provForm.$invalid" ng-click="save(prov)" style="margin-right:20px;">
+                Aceptar
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>
+

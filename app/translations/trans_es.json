@@ -1,0 +1,96 @@
+{
+    "appName": "NgExplorer",
+    "LENGUAJES": "Idiomas",
+    "menus": {
+        "admin": {
+            "login": {
+                "title": "Autenticar usuario",
+                "user": "Usuario",
+                "password": "Contraseña",
+                "cancel": "Cancelar",
+                "ok": "Aceptar"
+            },
+            "label": "Admin",
+            "tooltip": "Administrar proveedores",
+            "table": {
+                "name": "Nombre",
+                "type": "Tipo",
+                "dir": "Dirección",
+                "dirScan": "Dir a Escanear",
+                "date": "Creado",
+                "actions": {
+                    "label": "Acciones",
+                    "del": "Eliminar",
+                    "edit": "Editar",
+                    "sincro":"Sincronizar"
+                },
+                "enable_selection": "Activar selección",
+                "disable_selection": "Desactivar selección",
+                "show_head": "Ver título columnas",
+                "no_head": "Ocultar título columnas",
+                "close": "Salir",
+                "closetooltip": "Cerrar sesión de usuario",
+                "add": "Adicionar",
+                "addtooltip": "Adicionar nuevo proveedor"
+            },
+            "editUser": {
+                "tooltip": "Editar cuenta de usuario"
+            }
+        },
+        "filter": {
+            "label": "Buscar",
+            "tooltip": "Buscar archivos",
+            "filter-name": "Filtro nombre",
+            "filter-extname": "Filtro extensión"
+        },
+        "prove": {
+            "label": "Proveedores",
+            "regist": "Registrados",
+            "fav": "Favoritos"
+        },
+        "listar": {
+            "label": "Listar",
+            "tooltip": "Explorar proveedores",
+            "nave": {
+                "adelante": "Ir adelante",
+                "atras": "Ir atras",
+                "arriba": "Ir al directorio superior",
+                "noneResult": "No encontramos resultados para"
+            },
+            "fab-speed": {
+                "newTab": "Abrir en nuevo tab",
+                "addFav": "Adicionar a favoritos",
+                "reloadDir": "Recargar directorio",
+                "viewIcons": "Vista Iconos",
+                "viewList": "Vista Listado"
+            },
+            "name": "Nombre",
+            "type": "Tipo",
+            "size": "Tamaño",
+            "time": "Fecha",
+            "extname": "Extensión"
+        }
+    },
+    "config": {
+        "title": "Opciones de configuración",
+        "label": "Configurar",
+        "initConfig": "Configuración inicial"
+    },
+    "error": {
+        "minlength": "Se requiere un máximo de 3",
+        "minlength5": "Se requiere un máximo de 5",
+        "required": "Este campo es requerido",
+        "maxlength": "No se admiten más de 20",
+        "pattern": "No se aceptan caracteres especiales",
+        "pattern_email": "Correo no válido",
+        "pwmatch": "Las contraseñas deben coincidir",
+        "loguin": {
+            "internal_server_error": "Error interno en el servidor",
+            "passw_incorrect": "Contraseña incorrecta",
+            "user_not_found": "Usuario no encontrado"
+        }
+    },
+    "hotkeys": {
+        "title": "Accesos de teclado"
+    }
+}

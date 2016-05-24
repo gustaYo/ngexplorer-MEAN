@@ -1,0 +1,254 @@
+<div  class="sample" layout="column" ng-cloak>
+    <md-card>
+        <div layout="row" layout-wrap>
+            <md-button class="md-raised buttonngFinder" aria-label="Learn More" ng-click="history( - 1)">
+                <md-tooltip md-direction="bottom">
+                    <span translate="menus.listar.nave.atras">Atras</span>
+                </md-tooltip>
+                <ng-md-icon icon="arrow_back" style="fill:fast_rewind"></ng-md-icon>
+            </md-button>
+            <md-button class="md-raised buttonngFinder" aria-label="Learn More" ng-click="history(1)">
+                <md-tooltip md-direction="bottom">
+                    <span translate="menus.listar.nave.adelante">adelante</span>
+                </md-tooltip>
+                <ng-md-icon icon="arrow_forward" style="fill:fast_rewind"></ng-md-icon>
+            </md-button>
+            <md-button class="md-raised buttonngFinder" aria-label="Learn More" ng-click="IrArriba()">
+                <md-tooltip md-direction="bottom">
+                    <span translate="menus.listar.nave.arriba">arriba</span>
+                </md-tooltip>
+                <ng-md-icon icon="call_merge" style="fill:fast_rewind"></ng-md-icon>
+            </md-button>
+            <div flex style="padding-left: 10px">
+                <md-autocomplete flex
+                                 ng-show="!breadcrumb"
+                                 ng-model="dire"
+                                 ng-disabled="isDisabled"
+                                 md-no-cache="noCache"
+                                 md-selected-item="selectedItem"
+                                 md-search-text-change="searchTextChange(searchText)"
+                                 md-search-text="searchText"
+                                 md-selected-item-change="selectedItemChange(item)"
+                                 md-items="item in querySearch(searchText)"
+                                 md-item-text="item.url"
+                                 md-min-length="0"
+                                 placeholder="Directorio">
+                    <md-item-template>
+                        <div ng-click="moveTo(item)">
+                            <span style="float:right">{{ ProveedoresList[item._id].name}}</span>
+                            <span md-highlight-text="searchText" md-highlight-flags="^i"  >{{item.url}}</span>
+                        </div>                                    
+                    </md-item-template>
+                    <md-not-found>
+                        <span translate="menus.listar.nave.noneResult"></span> {{searchText}}
+                    </md-not-found>
+                </md-autocomplete>
+                <div flex ng-show="breadcrumb">
+                    <!--
+                    <md-button class="md-raised buttonngFinder" ng-repeat="dir in breadcrumbList track by $index" ng-click="activeBreadcrumb($index)" aria-label="Learn More">
+                        <ng-md-icon icon="folder_shared" style="fill:fast_rewind"></ng-md-icon>
+                        <span>{{ dir}}</span>
+                    </md-button>
+                    -->
+                    <div layout="row">
+                        <md-menu-bar>
+                            <md-menu ng-repeat="dir in breadcrumbList track by $index">
+                                <div style="width: 100%">
+                                    <div style="float: left">
+                                        <button  ng-click="activeBreadcrumb($index)" style="margin: 0 0px !important;padding:0 1px;">
+                                            {{ decodeURIComponent(dir)}}/
+                                        </button>
+                                    </div>
+                                    <div ng-if="$index < breadcrumbList.length - 1" style="float: left">
+                                        <md-button class="md-icon-button md-primary" aria-label="Settings" ng-click="getMenuSubFolder($index); $mdOpenMenu()" style="margin: 0 0px !important;">
+                                            <ng-md-icon icon="folder_shared" style="fill:fast_rewind"></ng-md-icon>
+                                            <md-tooltip md-direction="bottom">
+                                                <span>Directorios contenidos en {{dir}} /</span>
+                                            </md-tooltip>
+                                        </md-button>
+                                    </div>
+                                </div>
+                                <md-menu-content>
+                                    <md-menu-item class="md-indent" ng-repeat="folder in subMenusCache[tabs[selectedIndex]._id][$index]">
+                                        <md-icon md-svg-icon="undo"></md-icon>
+                                        <md-button ng-click="findFolder(folder, tabs[selectedIndex])" aria-label="Settings">
+                                            {{ decodeURIComponent(folder.name)}}                                            
+                                        </md-button>
+                                    </md-menu-item>                                            
+                                </md-menu-content>
+                            </md-menu>
+                        </md-menu-bar>
+                    </div>
+                </div>
+            </div>
+            <div flex="2">
+                <md-menu-bar>
+                    <md-menu>
+                        <button ng-click="$mdOpenMenu()" style="background-color: gainsboro;">
+                            Menu
+                        </button>
+                        <md-menu-content style="background-color:rgb(233, 233, 233);">
+                            <md-menu-item class="alt-textaling">
+                                <md-input-container>
+                                    <label for="testInput">Buscar</label>
+                                    <input type="text" id="server" ng-model="filterFolderFile" md-autofocus ng-change="findFileFolder(filterFolderFile)">                                    
+                                </md-input-container>
+                                <md-button class="md-raised" aria-label="Learn More" style="width: 10px!important" ng-click="cancelfindFileFolder(); filterFolderFile = ''" md-prevent-menu-close="md-prevent-menu-close">
+                                    <md-tooltip md-direction="bottom">
+                                        <span>Cancelar busqueda / Limpiar</span>
+                                    </md-tooltip>
+                                    <ng-md-icon icon="find_in_page" style="fill:fast_rewind"></ng-md-icon>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-divider></md-menu-divider>
+                            <md-menu-item class="alt-textaling">
+                                <md-button ng-click="showBreadcrumb(true);" aria-label="Learn More" md-prevent-menu-close="md-prevent-menu-close">
+                                    Breadcrumb
+                                    <span class="md-alt-text"> b</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-divider></md-menu-divider>
+                            <md-menu-item>
+                                <md-menu>
+                                    <md-button ng-click="$mdOpenMenu()">Mostar</md-button>
+                                    <md-menu-content style="background-color: rgb(233, 233, 233);">
+                                        <md-menu-item type="checkbox" ng-model="settings.viewcols.type" ng-change="updateConfig()" >
+                                            Tipo
+                                        </md-menu-item>
+                                        <md-menu-item type="checkbox" ng-model="settings.viewcols.size" ng-change="updateConfig()">
+                                            Tamano
+                                        </md-menu-item>
+                                        <md-menu-item type="checkbox" ng-model="settings.viewcols.time" ng-change="updateConfig()">
+                                            Fecha
+                                        </md-menu-item>
+                                        <md-menu-item type="checkbox" ng-model="settings.viewcols.select" ng-change="updateConfig()">
+                                            Seleccionar para descargar
+                                        </md-menu-item>
+                                    </md-menu-content>
+                                </md-menu>
+                            </md-menu-item>
+                            <!--
+                            <md-menu-item>
+                                <md-menu>
+                                    <md-button ng-click="$mdOpenMenu()">Mode</md-button>
+                                    <md-menu-content width="3">
+                                        <md-menu-item type="radio" ng-model="settings.sizeMode" value="'KB'">KB</md-menu-item>
+                                        <md-menu-item type="radio" ng-model="settings.sizeMode" value="'MB'">MB</md-menu-item>
+                                        <md-menu-item type="radio" ng-model="settings.sizeMode" value="'GB'">GB</md-menu-item>
+                                    </md-menu-content>
+                                </md-menu>
+                            </md-menu-item>
+                            -->
+                            <md-menu-item class="md-indent">
+                                <md-icon md-svg-icon="undo"></md-icon>
+                                <md-button ng-click="history( - 1)">
+                                    Undo
+                                    <span class="md-alt-text"></span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item class="md-indent">
+                                <md-icon md-svg-icon="redo"></md-icon>
+                                <md-button ng-click="history(1)">
+                                    Redo
+                                    <span class="md-alt-text"></span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-divider></md-menu-divider>
+                            <md-menu-item class="md-indent">
+                                <md-icon md-svg-icon="content-cut"></md-icon>
+                                <md-button ng-click="ctrl.sampleAction('cut', $event)">
+                                    Cut
+                                    <span class="md-alt-text">{{ 'M-X' | keyboardShortcut }}</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item class="md-indent">
+                                <md-icon md-svg-icon="content-copy"></md-icon>
+                                <md-button ng-click="ctrl.sampleAction('copy', $event)">
+                                    Copy
+                                    <span class="md-alt-text">{{ 'M-C' | keyboardShortcut }}</span>
+                                </md-button>
+                            </md-menu-item>
+                            <md-menu-item class="md-indent">
+                                <md-icon md-svg-icon="content-paste"></md-icon>
+                                <md-button ng-click="ctrl.sampleAction('paste', $event)">
+                                    Paste
+                                    <span class="md-alt-text">{{ 'M-P' | keyboardShortcut }}</span>
+                                </md-button>
+                            </md-menu-item>
+                        </md-menu-content>
+                    </md-menu>                    
+                </md-menu-bar>
+            </div>
+        </div>
+    </md-card>
+    <md-whiteframe style="background-color: #fcddde;" ng-if="tabs.length == 0" class="md-whiteframe-1dp" flex-sm="45" flex-gt-sm="35" flex-gt-md="25" layout layout-align="center center">
+        <h1>Selecciona un proveedor para comenzar</h1>
+    </md-whiteframe>
+    <md-content>
+        <md-tabs  md-selected="selectedIndex" md-border-bottom md-autoselect style="min-height: 80vh;overflow: hidden !important;" >
+            <md-tab ng-repeat="tab in tabs track by $index"
+                    ng-disabled="tab.disabled"
+                    >
+                <md-tab-label>
+                    <label>{{tab.title}}</label>
+                    <md-tooltip md-direction="bottom">
+                        <span>{{ tab.uri}}</span>
+                    </md-tooltip>
+                    <ng-md-icon  icon="close" ng-click="removeTab(tab._id)" ng-show="tabs.length > 1" ></ng-md-icon>
+                </md-tab-label>
+                <md-tab-body>
+                    <div when-scrolled="loadScrollEvent(tab)" class="demo-tab tab{{$index % 4}}" style="padding: 25px;" ng-init="loadFiles(tab);" ng-include="ViewMode[tab.viewMode].urlView" ></div>
+                </md-tab-body>
+            </md-tab>
+        </md-tabs>
+    </md-content>    
+    <div style="position: fixed;bottom: 80px;right: 10px">
+        <md-fab-speed-dial md-open="isOpen" md-direction="{{selectedDirection}}"
+                           ng-class="selectedMode"
+                           ng-mouseenter="isOpen = true" ng-mouseleave="isOpen = false"
+                           >
+            <md-fab-trigger>
+                <md-button aria-label="menu" class="md-fab md-warn">
+                    <md-icon md-svg-src="images/icons/menu.svg"></md-icon>
+                </md-button>
+            </md-fab-trigger>
+            <md-fab-actions>                
+                <md-button aria-label="Twitter" class="md-fab md-raised md-mini" ng-click="DescargarFilesSelected($event)">
+                    <md-tooltip md-direction="left">
+                        <span >Descargar archivos seleccionados</span>
+                    </md-tooltip>
+                    <md-icon md-svg-src="images/icons/octicon-repo.svg" aria-label="Nuevo tab"></md-icon>
+                </md-button>
+                <md-button aria-label="Twitter" class="md-fab md-raised md-mini" ng-click="openInNewTab()">
+                    <md-tooltip md-direction="left">
+                        <span translate="menus.listar.fab-speed.newTab">Abrir en nuevo tab</span>
+                    </md-tooltip>
+                    <md-icon md-svg-src="images/icons/copy2.svg" aria-label="Nuevo tab"></md-icon>
+                </md-button>
+                <!--
+                <md-button aria-label="Twitter" class="md-fab md-raised md-mini" ng-click="addFavorite()">
+                    <md-tooltip md-direction="left">
+                       <span translate="menus.listar.fab-speed.addFav">Abrir en nuevo tab</span>
+                    </md-tooltip>
+                    <md-icon md-svg-src="images/icons/favorite.svg" aria-label="Adicionar favoritos"></md-icon>
+                </md-button>
+                -->
+                <md-button aria-label="Twitter" class="md-fab md-raised md-mini" ng-click="reloadDirect()">
+                    <md-tooltip md-direction="left">
+                        <span translate="menus.listar.fab-speed.reloadDir">Abrir en nuevo tab</span>
+                    </md-tooltip>
+                    <md-icon md-svg-src="images/icons/ic_refresh_24px.svg" aria-label="Abrir en nuevo tab"></md-icon>
+                </md-button>
+                <md-button aria-label="Twitter" class="md-fab md-raised md-mini" ng-click="changeViewMode()">
+                    <md-tooltip md-direction="left">
+                        <span>{{'menus.listar.fab-speed.' + ViewMode[viewModeSee()].title | translate}}</span>
+                    </md-tooltip>
+                    <ng-md-icon icon="{{ViewMode[viewModeSee()].icon}}" style="fill:fast_rewind"></ng-md-icon>
+                </md-button>
+            </md-fab-actions>
+        </md-fab-speed-dial>
+    </div>
+</div>
+
+
+

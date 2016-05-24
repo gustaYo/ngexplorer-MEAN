@@ -1,0 +1,91 @@
+{
+    "appName": "NgExplorer",
+    "LENGUAJES": "Languages",
+    "menus": {
+        "admin": {
+            "login": {
+                "title": "Login",
+                "user": "User",
+                "password": "Password",
+                "cancel": "Cancel",
+                "ok": "Accept"
+            },
+            "label": "Admin",
+            "tooltip": "Manage providers",
+            "table": {
+                "name": "Name",
+                "type": "Type",
+                "dir": "Address",
+                "dirScan": "Scanned dir",
+                "date": "Created",
+                "actions": "Actions",
+                "enable_selection": "Enable selection",
+                "disable_selection": "Disable selection",
+                "show_head": "Show columns title",
+                "no_head": "Hide columns title",
+                "close": "Exit",
+                "closetooltip": "Logout",
+                "add": "Add",
+                "addtooltip": "Add provider"
+            },
+            "editUser": {
+                "tooltip": "Edit user account"               
+            }
+        },
+        "filter": {
+            "label": "Search",
+            "tooltip": "Search files",
+            "filter-name": "Filter by name",
+            "filter-extname": "Filter by extension"
+        },
+        "prove": {
+            "label": "Providers",
+            "regist": "Registered",
+            "fav": "Favorites"
+        },
+        "listar": {
+            "label": "List",
+            "tooltip": "Explore providers",
+            "nave": {
+                "adelante": "Go forward",
+                "atras": "Go back",
+                "arriba": "Go up",
+                "noneResult": "We didn't find results for"
+            },
+            "fab-speed": {
+                "newTab": "Open in new TAB",
+                "addFav": "Add to favorites",
+                "reloadDir": "Reload dir",
+                "viewIcons": "Icon View",
+                "viewList": "List View"
+            },
+            "name": "Name",
+            "type": "Type",
+            "size": "Size",
+            "time": "Date",
+            "extname": "Extension"
+        }
+    },
+    "config": {
+        "title": "Configuration options",
+        "label": "Configure",
+        "initConfig": "Initial config"
+    },
+    "error": {
+        "minlength": "Up to 3",
+        "minlength5": "Up to 5",
+        "required": "This field is required",
+        "maxlength": "Up to 20",
+        "pattern": "Special caracters aren't allowed",
+        "pattern_email": "Invalid mail",
+        "pwmatch": "Password must match",
+        "loguin": {
+            "internal_server_error": "Internal server error",
+            "passw_incorrect": "Wrong password",
+            "user_not_found": "User not found"
+        }
+    },
+    "hotkeys":{
+        "title": "Hotkeys"        
+    }
+}

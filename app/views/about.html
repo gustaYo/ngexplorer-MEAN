@@ -1,0 +1,33 @@
+<md-bottom-sheet class="md-list md-has-header" ng-cloak>
+    <h3>Quienes somos</h3>
+    <div layout="row" layout-xs="column">
+        <div flex ng-repeat="user in AcercaDe.users">
+            <md-card layout="row" layout-xs="column">
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">{{ user.name}}</span>
+                        <span class="md-subhead">{{user.email}}</span>
+                    </md-card-title-text>
+                    <!--
+                    <md-card-title-media>
+                        <div class="md-media-sm card-media"><img src="{{ user.urlImage }}" alt=""></div>
+                    </md-card-title-media>
+                    -->
+                </md-card-title>
+            </md-card>
+        </div>
+        <div flex>
+            <md-content>
+                <p>
+                    Buscar información en los recursos compartidos de la Universidad (nuestros FTPs) nunca ha sido tan fácil, navega por los proveedores registrados y unifica la búsqueda entre ellos.
+                </p>
+                
+                <br>
+                <b></b>
+                <b style="float:right"><a href="https://rice.uci.cu/" target="blank_">Siguenos en RICE</a></b>
+            </md-content> 
+        </div>
+    </div>
+
+</div>
+</md-bottom-sheet>

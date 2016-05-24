@@ -1,0 +1,81 @@
+<md-dialog ng-cloak>
+    <form name="provForm" ng-submit="loguinUser()">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 translate="menus.admin.login.title">Loguin</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="cancel()">
+                    <md-icon md-svg-src="images/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <md-content layout-padding>
+                    <div>                           
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label translate="menus.admin.login.user">Usuario</label>
+                                <input
+                                    name="username"
+                                    ng-model="user.username"
+                                    md-maxlength="20"
+                                    ng-pattern="/^[0-9A-Za-zñáéíóúÑÁÉÍÓÚ\s]+$/"
+                                    ng-minlength="3"
+                                    required
+                                    >
+                                <div ng-messages="provForm.username.$error" role="alert" multiple>
+                                    <div ng-show="provForm.username.$error.required" ng-message="required" class="my-message" translate="error.required">
+                                        requerido
+                                    </div>
+                                    <div ng-show="provForm.username.$error.pattern" ng-message="pattern" class="my-message" translate="error.pattern">
+                                        Solo alfanumerios 
+                                    </div>
+                                    <div ng-show="provForm.username.$error.maxlength" ng-message="md-maxlength" class="my-message" translate="error.maxlength">
+                                        no mas de 20
+                                    </div>
+                                    <div ng-show="provForm.username.$error.minlength" ng-message="md-minlength" class="my-message" translate="error.minlength">
+                                        mas de 3
+                                    </div>
+                                </div>                                
+                            </md-input-container>
+                        </div>
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label translate="menus.admin.login.password">Password</label>
+                                <input
+                                    name="password"
+                                    ng-model="user.password"
+                                    type="password"
+                                    required
+                                    >
+                                <div ng-messages="provForm.password.$error" role="alert" multiple>
+                                    <div ng-show="provForm.password.$error.required" ng-message="required" class="my-message"  translate="error.required">
+                                        requerido
+                                    </div>
+                                </div>
+                            </md-input-container>                            
+                        </div>
+                    </div>
+                </md-content>
+                <div class="md-toolbar-tools" ng-show="error != ''">
+                    <label> {{ 'error.loguin.' + error | translate }}</label>
+                    <span flex></span>
+                    <md-button class="md-icon-button" ng-click="error=''">
+                        <md-icon md-svg-src="images/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                    </md-button>
+                </div>               
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <span flex></span>
+            <md-button ng-click="cancel()">
+                <span translate="menus.admin.login.cancel">Cancelar</span>                
+            </md-button>
+            <md-button ng-disabled="provForm.$invalid" type="submit" style="margin-right:20px;">
+                <span translate="menus.admin.login.ok">Aceptar</span>  
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>
+

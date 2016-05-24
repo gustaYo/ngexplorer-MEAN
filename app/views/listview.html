@@ -1,0 +1,38 @@
+<div>
+    <md-table-container>
+        <table data-md-table md-progress="promise" class="tableViewList" data-md-row-select="settings.viewcols.select" data-ng-model="selected" >
+            <thead md-head data-md-order="tab.query.order" md-on-reorder="onReorder">
+                <tr md-row>
+                    <th md-column md:order:by="file.name"><span translate="menus.listar.name">Nombre</span></th>
+                    <th md-column md:order:by="type" ng-show="settings.viewcols.type"><span translate="menus.listar.type">Type</span></th>
+                    <th md-column data-md-numeric data-md-order-by="file.size" ng-show="settings.viewcols.size"><span translate="menus.listar.size">Size</span></th>
+                    <th md-column data-md-numeric data-md-order-by="file.time" ng-show="settings.viewcols.time"><span translate="menus.listar.time"> Date</span></th>                    
+                </tr>
+            </thead>
+            <tbody md-body>
+                <tr md-row
+                    md:select="tile" data-md-on-select="log" md-on-deselect="deselect" x-md-auto-select="autoSelect"
+                    data-ng-repeat="tile in tab.files| filter: tab.filter.search | orderBy: tab.query.order | limitTo: tab.query.limit : (tab.query.page -1) * tab.query.limit"
+                    ng-click="findFolder(tile.file, tab)"
+                    ng-mouseover="tile.ico = icons[tile.icon].active;"
+                    ng-mouseleave="tile.ico = icons[tile.icon].desactive;"
+                    ng-if="tab.files.length > 0"
+                    >
+                    <td md-cell>
+            <ng-md-icon options='{"duration": 275, "rotation": "none"}'  icon="{{tile.ico}}" style="fill:fast_rewind"></ng-md-icon> 
+            {{tile.name}}
+            </td>
+            <td md-cell ng-show="settings.viewcols.type">{{ tile.file.extname}}</td>
+            <td md-cell ng-show="settings.viewcols.size">{{FileSizeConvert(tile.file.size)}}</td>
+            <td md-cell ng-show="settings.viewcols.time">{{tile.file.time| date:'dd-M-yyyy'}}</td>           
+            </tr>
+            <tr md-row
+                ng-if="tab.files.length === 0"
+                >
+                <td md-cell colspan="5" style="text-align: center">Directorio vacio</td>
+            </tr>
+            </tbody>
+        </table>
+    </md-table-container>
+    <data-md-table-pagination style="background-color: rgb(249, 233, 233)" ng-if="tab.files.length >= tab.query.limit" md-limit="tab.query.limit" md-page="tab.query.page" md-total="{{tab.files.length}}" md-on-paginate="onPaginate" md-page-select></data-md-table-pagination>
+</div>

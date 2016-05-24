@@ -1,0 +1,46 @@
+<md-dialog aria-label="Mango (Fruit)" ng-cloak>
+    <form name="provForm">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Sincronizar proveedor</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="cancel()">
+                    <md-icon md-svg-src="images/icons/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <md-content layout-padding>
+                    <div>
+                        <div layout-gt-sm="row">
+                            <div layout="row" layout-sm="column">
+                                <md-input-container>
+                                    <label for="testInput">Url servidor remoto</label>
+                                    <input type="text" id="server"
+                                           ng-model="server.url" md-autofocus>
+                                </md-input-container>
+                                <md-button ng-show="!state" md-no-ink class="md-primary" ng-click="TestSincronize()">Test</md-button>
+                                <md-button ng-show="state" md-no-ink class="md-primary" ng-click="RunSincronize()">Sincronizar</md-button>
+                            </div>
+                        </div>
+                        <md-progress-linear ng-show="run" md-mode="indeterminate"></md-progress-linear>
+                        <div ng-show="count !== 0">
+                            <label>{{ count}}</label>/<b>{{ remote.numFiles}}</b>
+                        </div>
+                        <div ng-show="mensaje" class="alert alert-success" role="alert">
+                            <strong>{{mensaje.title}}</strong> {{ mensaje.description }}
+                        </div>
+                    </div>
+                </md-content>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <span flex></span>
+            <md-button ng-click="cancel()">
+                Cancelar
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>
+

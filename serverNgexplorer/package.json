@@ -1,0 +1,37 @@
+{
+  "name": "server-ng-explorer",
+  "version": "1.0.0",
+  "description": "backend MEAN de ngExplorer",
+  "main": "server.js",
+  "dependencies": {
+    "async": "^1.5.2",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "~1.0.0",
+    "cheerio": "^0.20.0",
+    "ejs": "~1.0.0",
+    "elasticsearch": "^11.0.1",
+    "elasticsearch-deletebyquery": "^1.6.0",
+    "express": "4.x",
+    "express-jwt": "0.2.1",
+    "force-ssl": "~1.0.5",
+    "ftp": "^0.3.10",
+    "jsftp": "~1.5.2",
+    "jsonwebtoken": "0.4.0",
+    "moment": "^2.12.0",
+    "mongoose": "latest",
+    "morgan": "latest",
+    "request": "latest",
+    "request-ip": "^1.2.2",
+    "self-signed-https": "~1.0.5"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@codecomunidades.uci.cu:gcrespo/ngexplorer.git"
+  },
+  "author": "Gustavo Crespo Sanchez",
+  "license": "ISC"
+}

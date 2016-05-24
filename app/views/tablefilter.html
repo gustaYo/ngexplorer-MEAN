@@ -1,0 +1,39 @@
+<md-table-container ng-init="initTable();
+        focusInput();
+        updateCount();">
+    <table data-md-table data-md-row-select="!hideCheckboxes" data-ng-model="selected" md-progress="promise">
+        <thead ng-if="!hideHead" md-head data-md-order="query.order" md-on-reorder="onReorder">
+            <tr md-row>
+                <th md-column md:order:by="name"><span><label style="float: right">Consultado en {{timeConsult}} s</label><span translate="menus.listar.name">Nombre</span></th>
+                <th md-column md:order:by="extname"><span translate="menus.listar.extname">extname</span></th>
+                <th md-column data-md-numeric data-md-order-by="ftp"><span>Ftp</span></th>
+            </tr>
+        </thead>
+        <tbody md-body>
+            <tr md-row>
+                <td md-cell>
+        <md-input-container class="md-block filtroinput" flex-gt-sm>
+            <label translate="menus.filter.filter-name">Filtro nombre  </label>
+            <input ng-model="filter.name" ng-keyup="filterEnter()">
+        </md-input-container>
+        </td>
+        <td md-cell>
+        <md-input-container class="md-block filtroinput" flex-gt-sm>
+            <label translate="menus.filter.filter-extname">Filtro extencion</label>
+            <input ng-model="filter.extname" ng-keyup="filterEnter()">
+        </md-input-container>
+        </td>
+        <td md-cell hide-sm>{{counts.ftpsFilesSelect}}/{{ counts.countAll}}</td>
+        </tr>
+        <tr flex-gt-sm md-row md:select="dessert" data-md-on-select="log" md-on-deselect="deselect" x-md-auto-select="!blah" data-ng-repeat="dessert in desserts.data| orderBy: query.order | limitTo: query.limit : (query.page -1) * query.limit">
+            <td md-cell><a ng-href="{{ dessert.baseurl + '/' + dessert.file.name}}" target="_blanck">{{ dessert.name}}</a></td>                
+            <td md-cell>{{dessert.file.extname}}</td>
+            <td md-cell hide-sm><a ng-href="{{ dessert.baseurl}}" target="_blanck">{{ dessert.ftpname }}</a></td>
+        </tr>
+        <tr flex-gt-sm md-row  data-md-on-select="log" ng-if="desserts.data.length == 0">
+            <td md-cell colspan="3" style="text-align: center">No se encontraron resultados</td>
+        </tr>
+        </tbody>
+    </table>
+</md-table-container>
+<data-md-table-pagination  md-limit="query.limit" md-page="query.page" md-total="{{desserts.count}}" md-on-paginate="onPaginate" md-page-select></data-md-table-pagination>
