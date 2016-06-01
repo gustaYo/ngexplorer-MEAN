@@ -20,8 +20,7 @@ angular
             'pascalprecht.translate',
             'LocalStorageModule',
             'ngMdIcons',
-            'cfp.hotkeys',
-            'ng.deviceDetector',
+            'cfp.hotkeys'
         ])
         // estableciendo roles para restringir el acceso a las rutas
         .run(permisosConfig)
@@ -245,7 +244,7 @@ angular
             }
 
         })
-        .controller('RightCtrl', function($location, $scope, $timeout, $mdSidenav, $log, localStorageService, $translate, $mdDialog, $mdMedia, User, deviceDetector, $mdBottomSheet) {
+        .controller('RightCtrl', function($location, $scope, $timeout, $mdSidenav, $log, localStorageService, $translate, $mdDialog, $mdMedia, User, $mdBottomSheet) {
 
             $scope.showListBottomSheet = function() {
                 $scope.alert = '';
@@ -284,8 +283,7 @@ angular
                 window.location.reload();
             }
             $scope.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
-            $scope.user = User.getUser();
-            console.log($scope.user);
+            $scope.user = User.getUser();           
             var useFullScreen = ($mdMedia('sm') || $mdMedia('xs')) && $scope.customFullscreen;
             $scope.AdminAccess = function(ev) {
                 if (typeof $scope.user.username === 'undefined') {
@@ -327,14 +325,23 @@ angular
             $scope.counter = {};
             $scope.counterVisit = function() {
                 $timeout(function() {
+                    var userAgent = new UserAgent().parse(navigator.userAgent);
                     var data = {
-                        browser: deviceDetector.browser,
-                        browser_version: deviceDetector.browser_version,
-                        device: deviceDetector.device,
-                        os: deviceDetector.os,
-                        os_version: deviceDetector.os_version,
+                        browser: userAgent.browser,
+                        browser_version: userAgent.version,
+                        device: 'angularApp',
+                        os: userAgent.platform,
+                        os_version: userAgent.os,
                         type: 'v'
                     }
+//                    var data = {
+//                        browser: deviceDetector.browser,
+//                        browser_version: deviceDetector.browser_version,
+//                        device: deviceDetector.device,
+//                        os: deviceDetector.os,
+//                        os_version: deviceDetector.os_version,
+//                        type: 'v'
+//                    }
                     User.counterVisit(data, function(res) {
                         $scope.counter = res;
                     }, function(e) {

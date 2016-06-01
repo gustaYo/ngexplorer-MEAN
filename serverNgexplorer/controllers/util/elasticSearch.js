@@ -17,6 +17,91 @@ clientelastic.ping({
     }
 });
 
+var FoldersSizeCal = new Array();
+elastic.getSizeFolder = function(parms, next) {
+    var TOTAL = 0;
+    var SizeDir = 0;
+    var time = 0;
+
+    // garantizar que no se calcula el tamanno a una carpeta mas de una vez
+    var index = FoldersSizeCal.indexOf(parms._id);
+    if (index !== -1) {
+        next({alert: "esta siendo calculado"});
+    } else {
+        FoldersSizeCal.push(parms._id);
+        var join = parms.directory === '/' ? '' : '/';
+        var dir = parms.directory + join + parms.name;
+
+// first we do a search, and specify a scroll timeout
+        clientelastic.search({
+            index: indexElastic,
+            // Set to 30 seconds because we are calling right back
+            scroll: '30s',
+            search_type: 'scan',
+            fields: ['size', 'extname', 'directory', 'time', 'ftp'],
+            body: {
+                filter: {
+                    and: [
+                        {
+                            term: {ftp: parms.ftp}
+                        },
+                        {
+                            "regexp": {
+                                "directory": ".*" + dir + ".*",
+                            }
+                        },
+                    ],
+                }
+            }
+        }, function getMoreUntilDone(error, response) {
+            // collect the title from each response
+            response.hits.hits.forEach(function(hit) {
+//                var fecha = Date.parse(response.hits.hits[0].time);
+                if (typeof hit.fields.time !== 'undefined') {
+                    var fecha = hit.fields.time;
+                    var fecha = isNaN(parseInt(fecha)) ? 0 : parseInt(fecha);
+                    if (fecha > time) {
+                        time = fecha;
+                    }
+                }
+                TOTAL++;
+                if (typeof hit.fields.size !== 'undefined') {
+                    var size = hit.fields.size;
+                    var num = isNaN(parseInt(size)) ? 0 : parseInt(size);
+                    SizeDir = SizeDir + num;
+                }
+            });
+
+            if (response.hits.total !== TOTAL) {
+                // now we can call scroll over and over
+                clientelastic.scroll({
+                    scrollId: response._scroll_id,
+                    scroll: '30s'
+                }, getMoreUntilDone);
+            } else {
+                var id = parms._id;
+                delete parms['_id'];
+                clientelastic.update({
+                    index: indexElastic,
+                    type: 'file',
+                    id: id,
+                    body: {
+                        // put the partial document under the `doc` key
+                        doc: {
+                            size: SizeDir,
+                            time: time
+                        }
+                    }
+                }, function(error, response) {
+                    // eliminando del arreglo
+                    var index = FoldersSizeCal.indexOf(id);
+                    FoldersSizeCal.splice(index, 1);
+                    next({size: SizeDir, time: time})
+                });
+            }
+        });
+    }
+}
 elastic.elasticCountFiles = function(next) {
     clientelastic.count(function(error, response, status) {
         // check for and handle error
@@ -38,9 +123,9 @@ elastic.elasticListDir = function(parms, next) {
             },
             filter: {
                 and: [
-                {
-                    term: {ftp: parms.ftp}
-                },
+                    {
+                        term: {ftp: parms.ftp}
+                    },
                 ]
             }
         }
@@ -48,8 +133,8 @@ elastic.elasticListDir = function(parms, next) {
         var retorn = new Array();
         var hist = response.hits.hits;
         for (var i in hist) {
-            var file= hist[i]._source;
-            file._id=hist[i]._id;
+            var file = hist[i]._source;
+            file._id = hist[i]._id;
             retorn.push(file);
         }
         next(retorn);
@@ -68,9 +153,9 @@ elastic.elasticInsert = function(auxT, next) {
     }
     create_bulk(br);
     clientelastic.bulk(
-    {
-        body: br
-    }, function(err, resp) {
+            {
+                body: br
+            }, function(err, resp) {
         next();
     });
 }
@@ -78,7 +163,7 @@ elastic.elasticInsert = function(auxT, next) {
 /**
  * Delete an existing index
  */
- elastic.deleteIndex = function() {
+elastic.deleteIndex = function() {
     return clientelastic.indices.delete({
         index: indexElastic
     });
@@ -98,38 +183,38 @@ var settings = {
                     "min_gram": 1,
                     "max_gram": 40
                 }},
-                "analyzer": {
-                    "myNGramAnalyzer": {
-                        "type": "custom",
-                        "tokenizer": "standard",
-                        "filter": ["lowercase", "myNGramFilter"]
-                    }},
-                },
-                "mappings": {
-                    "file": {
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "index_analyzer": "myNGramAnalyzer",
-                                "search_analyzer": "standard"
-                            }
-                        }
+            "analyzer": {
+                "myNGramAnalyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": ["lowercase", "myNGramFilter"]
+                }},
+        },
+        "mappings": {
+            "file": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "index_analyzer": "myNGramAnalyzer",
+                        "search_analyzer": "standard"
                     }
                 }
             }
-        };
-        elastic.initIndex = function() {
-            return clientelastic.indices.create({
-                index: indexElastic,
-                body: {
-                    settings: settings
-                }
-            });
         }
+    }
+};
+elastic.initIndex = function() {
+    return clientelastic.indices.create({
+        index: indexElastic,
+        body: {
+            settings: settings
+        }
+    });
+}
 /**
  * check if the index exists
  */
- elastic.indexExists = function() {
+elastic.indexExists = function() {
     return clientelastic.indices.exists({
         index: indexElastic
     });
@@ -143,9 +228,9 @@ elastic.initMapping = function() {
             properties: {
                 directory: {type: "string", "index": "not_analyzed"},
 //                name: {type: "string", "index": "not_analyzed"},
-}
-}
-});
+            }
+        }
+    });
 }
 elastic.elasticgetSizeFolder = function(parms, next) {
 
@@ -153,8 +238,8 @@ elastic.elasticgetSizeFolder = function(parms, next) {
 elastic.elasticDeleteFiles = function(parms, next) {
     var allTitles = [];
 // first we do a search, and specify a scroll timeout
-clientelastic.search({
-    index: indexElastic,
+    clientelastic.search({
+        index: indexElastic,
         // Set to 30 seconds because we are calling right back
         scroll: '30s',
         search_type: 'scan',
@@ -177,9 +262,9 @@ clientelastic.search({
             }, getMoreUntilDone);
         } else {
             clientelastic.bulk(
-            {
-                body: allTitles
-            }
+                    {
+                        body: allTitles
+                    }
             , function(err, resp) {
                 var __t;
                 var esperarEliminar = function() {
@@ -215,43 +300,43 @@ var sanatize_QUERY = function(query) {
             .replace(/AND/g, '\\A\\N\\D') // replace AND
             .replace(/OR/g, '\\O\\R') // replace OR
             .replace(/NOT/g, '\\N\\O\\T'); // replace NOT
-        };
-        elastic.elasticFind = function(parms, next) {
+};
+elastic.elasticFind = function(parms, next) {
     // filtrar por extname tambien
     var extname = {};
     if (typeof parms.extname !== 'undefined' && parms.extname !== '') {
 //        extname = {
 //            term: {extname: parms.extname}
 //        }
-extname = {
-    "regexp": {
-        "name": ".*" + parms.extname + ".*",
-    }
-}
+        extname = {
+            "regexp": {
+                "name": ".*" + parms.extname + ".*",
+            }
+        }
 
-}
-var searchParams = {
-    index: indexElastic,
-    from: 0,
-    size: 100,
-    body: {
-        "query": {"match_phrase_prefix": {"name": encodeURIComponent(parms.name.toLowerCase())}},
-        filter: {
-            and: [
-            {
-                terms: {ftp: parms.ftps}
-            },
+    }
+    var searchParams = {
+        index: indexElastic,
+        from: 0,
+        size: 100,
+        body: {
+            "query": {"match_phrase_prefix": {"name": encodeURIComponent(parms.name.toLowerCase())}},
+            filter: {
+                and: [
+                    {
+                        terms: {ftp: parms.ftps}
+                    },
 //                    {
 //                        "regexp": {
 //                            "name": ".*" + encodeURIComponent(parms.name) + ".*",
 //                        }
 //                    },
-extname
-]
-}
-}
-};
-clientelastic.search(searchParams, next);
+                    extname
+                ]
+            }
+        }
+    };
+    clientelastic.search(searchParams, next);
 }
 module.exports = elastic;
 

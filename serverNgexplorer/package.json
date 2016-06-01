@@ -22,7 +22,8 @@
     "morgan": "latest",
     "request": "latest",
     "request-ip": "^1.2.2",
-    "self-signed-https": "~1.0.5"
+    "self-signed-https": "~1.0.5",
+    "unirest": "^0.5.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

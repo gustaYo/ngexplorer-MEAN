@@ -234,30 +234,37 @@ exports.CountFtpsFiles = function(req, res) {
  */
 exports.getSizeFolder = function(req, res) {
     var parms = req.query;
-    var join = parms.directory === '/' ? '' : '/';
-    var query = {ftp: parms.ftp, directory: new RegExp('^' + parms.directory + join + parms.name + '.*$', "i"), extname: {$exists: true}};
-    FtpFiles.find(query, {size: 1, extname: 1, time: 1})
-            .sort({time: -1})
-            .exec(function(err, files) {
-                var lastUpdate = "";
-                var pesa = 0;
-                if (files.length > 0) {
-                    lastUpdate = files[0].time;
-                }
-                for (var file in files) {
-                    var num = isNaN(parseInt(files[file].size)) ? 0 : parseInt(files[file].size);
-                    pesa = pesa + num;
-                }
-                FtpFiles.update(
-                        {_id: parms._id},
-                {$set: {
-                        size: pesa,
-                        time: lastUpdate
+    if (useElastic) {
+        elastic.getSizeFolder(parms, function(result) {
+            res.status(200).send(result);
+        })
+    } else {
+        var join = parms.directory === '/' ? '' : '/';
+        var query = {ftp: parms.ftp, directory: new RegExp('^' + parms.directory + join + parms.name + '.*$', "i"), extname: {$exists: true}};
+        FtpFiles.find(query, {size: 1, extname: 1, time: 1})
+                .sort({time: -1})
+                .exec(function(err, files) {
+                    var lastUpdate = "";
+                    var pesa = 0;
+                    if (files.length > 0) {
+                        lastUpdate = files[0].time;
                     }
-                }, function(err) {
-                    res.status(200).jsonp(pesa);
+                    for (var file in files) {
+                        var num = isNaN(parseInt(files[file].size)) ? 0 : parseInt(files[file].size);
+                        pesa = pesa + num;
+                    }
+
+                    FtpFiles.update(
+                            {_id: parms._id},
+                    {$set: {
+                            size: pesa,
+                            time: lastUpdate
+                        }
+                    }, function(err) {
+                        res.status(200).jsonp(pesa);
+                    });
                 });
-            });
+    }
 }
 /**
  * DeleteFTP
@@ -530,7 +537,7 @@ var dirIsValid = function(dir, array) {
             // If the string is UTF-8, this will work and not throw an error.
             dir = decodeURIComponent(escape(dir));
         } catch (e) {
-            
+
         }
         if (!ValidURL(dir)) {
             var index = array.indexOf(dir);
@@ -555,6 +562,22 @@ var convertToKB = function(size) {
     }
     return size;
 }
+
+
+function getHTML(url, next) {
+    var unirest = require('unirest');
+    unirest.get(url)
+            .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
+            .end(function(response) {
+                var body = response.body;
+                if (next)
+                    next(body);
+            });
+}
+//getHTML('http://store.uci.cu/seguridad/DOCUMENTACION/Inform%c3%a1tica%20Forense/Infosecurity%20Forum%20Taller%20Forencia%20Digital/1%20Infosecurity%20Forum%202007.pdf', function(html) {
+//    console.log(html);
+//});
+
 
 // este forma de escanear http es consultar carpeta por carpeta en una sola peticion mas lento
 var scannerHTTPoneThread = function(result, proxy, errorCallback) {
@@ -581,21 +604,28 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
     var num = 0;
     var escannerInit = false;
     var q = async.queue(function(url, callback) {
-
         var newFiles = new Array();
         var peti = request;
         var retorn = {};
         var newUrls = new Array();
         var parmsRequest = {
             'url': result.uri + url,
-            pool: {maxSockets: 2}
+            pool: {maxSockets: 2},
+            headers: [
+                {
+                    name: 'content-type',
+                    value: 'application/x-www-form-urlencoded'
+                }
+            ]
         };
         if (proxy.enabled === 'active') {
             parmsRequest.proxy = proxyUrl;
         }
         retorn = peti(parmsRequest, function(error, response, body) {
             if (url.length > 1) {
-                url = url.substring(0, url.length - 1);
+                if (url[url.length - 1] === '/') {
+                    url = url.substring(0, url.length - 1)
+                }
             }
             if (error) {
                 console.log(error)
@@ -616,7 +646,6 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
                 $(result.query).each(function() {
                     var element = this;
                     var href = $(element).attr('href');
-//
                     try {
                         href = href.replace(parmsRequest.url, "");
                     } catch (e) {
