@@ -419,7 +419,7 @@ var scannerFTPoneThread = function(result, errorCallback) {
                                 var carpeta = {
                                     directory: url,
                                     name: name,
-                                    ftp: result._id,
+                                    ftp: result._id
                                 }
                                 files_scanner.push(carpeta);
                                 folders.push(newPaht);
@@ -535,7 +535,7 @@ var dirIsValid = function(dir, array) {
         // los directorios hay que decodificarlos
         try {
             // If the string is UTF-8, this will work and not throw an error.
-            dir = decodeURIComponent(escape(dir));
+            dir = decodeURIComponent(dir);
         } catch (e) {
 
         }
@@ -557,26 +557,41 @@ var convertToKB = function(size) {
             toKB = 1;
         }
         var megas = size.substring(0, size.length - 1);
-        var num = isNaN(parseInt(megas)) ? 0 : parseInt(megas);
+        var num = isNaN(parseFloat(megas)) ? 0 : parseFloat(megas);
         return num * toKB;
     }
     return size;
 }
 
 
-function getHTML(url, next) {
-    var unirest = require('unirest');
-    unirest.get(url)
-            .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
-            .end(function(response) {
-                var body = response.body;
-                if (next)
-                    next(body);
-            });
-}
-//getHTML('http://store.uci.cu/seguridad/DOCUMENTACION/Inform%c3%a1tica%20Forense/Infosecurity%20Forum%20Taller%20Forencia%20Digital/1%20Infosecurity%20Forum%202007.pdf', function(html) {
-//    console.log(html);
-//});
+//function getHTML(url, next) {
+//    var unirest = require('unirest');
+//    unirest.get(url)
+//            .headers({'Accept': 'application/json', 'Content-Type': 'application/json'})
+//            .end(function(response) {
+//                var body = response.body;
+//                if (next)
+//                    next(body);
+//            });
+//}
+////getHTML('http://store.uci.cu/seguridad/DOCUMENTACION/Inform%c3%a1tica%20Forense/Infosecurity%20Forum%20Taller%20Forencia%20Digital/1%20Infosecurity%20Forum%202007.pdf', function(html) {
+////    console.log(html);
+////});
+//
+//var d3 = require('d3-request');
+////testFileRequest();
+//var urlll = "http://store.uci.cu/biblioteca/Revistas%20Gigas%20en%20PDF/";
+//d3.request(urlll)
+//        .header("X-Requested-With", "XMLHttpRequest")
+//        .mimeType("text/html")
+//
+//        .response(function(xhr) {
+//            console.log(xhr)
+//            return xhr.responseText;
+//        })
+//        .get(function(error, data) {
+////            console.log(data)
+//        });
 
 
 // este forma de escanear http es consultar carpeta por carpeta en una sola peticion mas lento
@@ -611,12 +626,9 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
         var parmsRequest = {
             'url': result.uri + url,
             pool: {maxSockets: 2},
-            headers: [
-                {
-                    name: 'content-type',
-                    value: 'application/x-www-form-urlencoded'
-                }
-            ]
+            headers: {
+                'Accept': "text/plain"
+            }
         };
         if (proxy.enabled === 'active') {
             parmsRequest.proxy = proxyUrl;
@@ -680,6 +692,7 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
                                         var text = text.split(' ');
                                         var fecha = text[0] + ' ' + text[1];
                                         var size = text[text.length - 1];
+                                        size = convertToKB(size);
                                         fecha = Date.parse(fecha);
                                     } catch (e) {
                                         console.log("algo no fue bien esto es obligado")
@@ -731,7 +744,7 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
 // empezando a escanear introducciendo el
 
     q.unshift(result.dirscan, function(err) {
-        console.log('empezando el scanner');
+        console.log('empezando el scanner', result.dirscan);
     });
 
 }
@@ -806,18 +819,22 @@ var InstallInit = function() {
 //        })
 //        elastic.deleteIndex();
 
-        elastic.indexExists().then(function(exists) {
-            if (exists) {
-                listDefault();
-            } else {
-                elastic.initIndex().then(elastic.initMapping).then(function() {
-                    elastic.elasticCountFiles(function(num) {
-
-                    })
+        if (useElastic) {
+            elastic.indexExists().then(function(exists) {
+                if (exists) {
                     listDefault();
-                });
-            }
-        })
+                } else {
+                    elastic.initIndex().then(elastic.initMapping).then(function() {
+                        elastic.elasticCountFiles(function(num) {
+
+                        })
+                        listDefault();
+                    });
+                }
+            })
+        } else {
+            listDefault();
+        }
     }, 3000);
 }
 var listDefault = function() {
