@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var User = mongoose.model('users');
 var Logs = mongoose.model('logs');
 var FtpFiles = mongoose.model('ftpfiles');
+var useragent = require('express-useragent');
 
 exports.authenticate = function(req, res) {
     User.findOne({username: req.body.username}, function(err, user) {
@@ -187,6 +188,26 @@ var saveLog = function(log, next) {
         next();
     });
 }
+exports.contadorVisitServer=function(req,next){
+    var userAgent = useragent.parse(req.headers['user-agent']);
+    var data = {
+        browser: userAgent.browser,
+        browser_version: userAgent.version,
+        device: 'clientReact',
+        os: userAgent.platform,
+        os_version: userAgent.os,
+        type: 'v'
+    }
+    var clientIp = requestIp.getClientIp(req);
+    data.ip = clientIp;
+    saveLog(data, function() {
+        TotalVisitas(
+                function(err, results) {
+                    return next(results);
+                });
+    })
+}
+
 
 exports.contadorVisit = function(req, res) {
     var clientIp = requestIp.getClientIp(req);

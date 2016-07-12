@@ -320,7 +320,20 @@ elastic.elasticFind = function(parms, next) {
         from: 0,
         size: 100,
         body: {
-            "query": {"match_phrase_prefix": {"name": encodeURIComponent(parms.name.toLowerCase())}},
+//            "query": {
+//                "bool": {
+//                    "should": [
+//                        {"match_phrase_prefix": {"name": encodeURIComponent(parms.name.toLowerCase())}},
+////                        {"match": {
+////                                "author": {
+////                                    "query": "Leo Tolstoy",
+////                                    "boost": 2
+////                                }}}
+//                    ]
+//                }
+//            },
+            
+             "query": {"match_phrase_prefix": {"name": encodeURIComponent(parms.name.toLowerCase())}},
             filter: {
                 and: [
                     {

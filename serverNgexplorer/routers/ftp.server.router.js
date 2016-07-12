@@ -10,6 +10,7 @@ module.exports = function(app, express, controllers) {
     ftp.route('/filescount')
             .post(controllers.ftp.CountFtpsFiles)
             .get(controllers.ftp.getSizeFolder)
+            .put(controllers.ftp.getChartStadist)
     ftp.route('/api/:parms')
             .get(controllers.ftp.GetFtpsProveedores)
             .delete(controllers.user.UserAccess('Admin'), controllers.ftp.DeleteFTP);

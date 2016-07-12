@@ -9,6 +9,11 @@ var config = require('../config.js');
 var cheerio = require('cheerio');
 var request = require("request");
 var moment = require('moment');
+
+
+const internos= require('./util/internosScanner')
+
+
 var paso = 500;
 var useElastic = config.elasticsearch.use;
 var elastic = {}
@@ -22,14 +27,14 @@ exports.AddFtpServer = function(req, res) {
         var id = data._id;
         delete data['_id'];
         Ftp.update(
-                {_id: id},
-        {$set: data
-        }, function(err) {
-            if (err)
-                return res.send(500, err.message);
-            else
-                res.status(200).jsonp('ok');
-        });
+            {_id: id},
+            {$set: data
+            }, function(err) {
+                if (err)
+                    return res.send(500, err.message);
+                else
+                    res.status(200).jsonp('ok');
+            });
     } else {
         //insertar
         var ftp = new Ftp(data);
@@ -71,13 +76,99 @@ exports.SincronizeServerProve = function(req, res) {
         FtpFiles.find({
             ftp: parms.idprove
         })
-                .select('-_id')
-                .limit(parms.perPage)
-                .skip(parms.perPage * parms.page)
-                .exec(function(err, files) {
-                    res.status(200).send(files);
-                });
+        .select('-_id')
+        .limit(parms.perPage)
+        .skip(parms.perPage * parms.page)
+        .exec(function(err, files) {
+            res.status(200).send(files);
+        });
     }
+}
+
+var calcCharts = function(numdays,next) {
+    var chartLog= new Array();
+    var ahora = moment().startOf('day')
+    Logs.findOne().exec(function(err, firtsLog) {
+        var created= moment(firtsLog.created);
+        var _today = moment(firtsLog.created).startOf('day')
+        var _tomorrow = moment(_today).add(numdays, 'days')
+        console.log("primer log",created.toDate(),_today.toDate(),_tomorrow.toDate())
+        var recurStadist= function(today,tomorrow, numdays){
+            countAuxVisit(today,tomorrow,function(err, results) {
+                chartLog.push(results)
+                today = tomorrow;                
+                if(moment.max(tomorrow, ahora)===ahora){
+                    tomorrow = moment(today).add(numdays, 'days')
+                    recurStadist(today,tomorrow,numdays)
+                }else{
+                    return next(chartLog)
+                }
+
+            });
+        }
+        recurStadist(_today,_tomorrow,numdays);
+    });
+}
+var countAuxVisit = function(today,tomorrow,next) {
+    // an example using an object instead of an array
+    async.parallel({
+        vunique: function(callback) {
+            Logs.collection.distinct("ip", {
+                type: 'v',
+                created: {
+                    $gte: today.toDate(),
+                    $lt: tomorrow.toDate()
+                }
+            }, function(error, results) {
+                callback(null, results.length);
+            })
+        },
+        vtotal: function(callback) {
+            Logs.count({
+                type: 'v',
+                created: {
+                    $gte: today.toDate(),
+                    $lt: tomorrow.toDate()
+                }
+            }, function(err, count) {
+                callback(null, count);
+            })
+        },
+        // filtros
+        funique: function(callback) {
+            Logs.collection.distinct("search", {
+                type: 'f',
+                created: {
+                    $gte: today.toDate(),
+                    $lt: tomorrow.toDate()
+                }
+            }, function(error, results) {
+                callback(null, results.length);
+            })
+        },
+        ftotal: function(callback) {
+            Logs.count({
+                type: 'f',
+                created: {
+                    $gte: today.toDate(),
+                    $lt: tomorrow.toDate()
+                }
+            }, function(err, count) {
+                callback(null, count);
+            })
+        },
+        date: function(callback){
+            callback(null, today.format());
+        }
+    },
+    next);
+}
+
+exports.getChartStadist = function(req, res) {
+    var parms = req.body;
+    calcCharts(parms.numdays,function(chartLog){
+        res.status(200).send(chartLog);
+    });
 }
 
 exports.AddFileToServerProve = function(req, res) {
@@ -101,24 +192,24 @@ exports.AddFileToServerProve = function(req, res) {
             } else {
                 // actulizar nuevos idenficadores                
                 FtpFiles
-                        .update(
-                                {ftp: parms.idOld},
-                        {$set: {
-                                ftp: parms.idNew
-                            }
-                        },
-                        {multi: true},
-                        function(err) {
-                            if (err) {
-                                return res.send(500, err.message);
-                            }
-                            else {
-                                if (useElastic) {
-                                    sincroniceProveMongoFilesElasticSearch(parms.idNew);
-                                }
-                                res.status(200).jsonp('ok');
-                            }
-                        });
+                .update(
+                    {ftp: parms.idOld},
+                    {$set: {
+                        ftp: parms.idNew
+                    }
+                },
+                {multi: true},
+                function(err) {
+                    if (err) {
+                        return res.send(500, err.message);
+                    }
+                    else {
+                        if (useElastic) {
+                            sincroniceProveMongoFilesElasticSearch(parms.idNew);
+                        }
+                        res.status(200).jsonp('ok');
+                    }
+                });
             }
         });
     }
@@ -149,7 +240,7 @@ var saveLog = function(log) {
 /**
  * GetFtps
  */
-exports.GetFtpsFiles = function(req, res) {
+ exports.GetFtpsFiles = function(req, res) {
     var parms = req.body;
     if (typeof parms.type !== 'undefined') {
         parms.name = parms.name || "";
@@ -160,43 +251,43 @@ exports.GetFtpsFiles = function(req, res) {
 //                    console.log("items", items);
 //                });
 
-        if (useElastic) {
-            elastic.elasticFind(parms, function(e, r) {
-                if (typeof parms.name !== 'undefined' && parms.name !== '') {
-                    saveLog({
-                        type: 'f',
-                        search: parms.name
-                    });
-                }
-                var retorn = new Array();
-                if (r.hits.total > 0) {
-                    var hist = r.hits.hits;
-                    for (var i in hist) {
-                        retorn.push(hist[i]._source);
-                    }
-                }
-                return   res.status(200).send(retorn);
+if (useElastic) {
+    elastic.elasticFind(parms, function(e, r) {
+        if (typeof parms.name !== 'undefined' && parms.name !== '') {
+            saveLog({
+                type: 'f',
+                search: parms.name
             });
-        } else {
-            var query = {name: new RegExp(encodeURIComponent(parms.name), "i"), "ftp": {$in: parms.ftps}};
-            if (typeof parms.extname !== 'undefined' && parms.extname !== '') {
-                query.extname = new RegExp(parms.extname, "i");
-            }
-            FtpFiles.find(query)
-                    .limit(50)
-                    .exec(function(err, filesftps) {
-                        if (err)
-                            res.send(500, err.message);
-                        if (typeof parms.name !== 'undefined' && parms.name !== '') {
-                            saveLog({
-                                type: 'f',
-                                search: parms.name
-                            });
-                        }
-                        res.status(200).send(filesftps);
-                    });
         }
-    } else {
+        var retorn = new Array();
+        if (r.hits.total > 0) {
+            var hist = r.hits.hits;
+            for (var i in hist) {
+                retorn.push(hist[i]._source);
+            }
+        }
+        return   res.status(200).send(retorn);
+    });
+} else {
+    var query = {name: new RegExp(encodeURIComponent(parms.name), "i"), "ftp": {$in: parms.ftps}};
+    if (typeof parms.extname !== 'undefined' && parms.extname !== '') {
+        query.extname = new RegExp(parms.extname, "i");
+    }
+    FtpFiles.find(query)
+    .limit(50)
+    .exec(function(err, filesftps) {
+        if (err)
+            res.send(500, err.message);
+        if (typeof parms.name !== 'undefined' && parms.name !== '') {
+            saveLog({
+                type: 'f',
+                search: parms.name
+            });
+        }
+        res.status(200).send(filesftps);
+    });
+}
+} else {
         // listar directorio
         if (useElastic) {
             elastic.elasticListDir(parms, function(rr) {
@@ -204,12 +295,12 @@ exports.GetFtpsFiles = function(req, res) {
             })
         } else {
             FtpFiles.find(parms)
-                    .sort({name: -1})
-                    .exec(function(err, filesftps) {
-                        if (err)
-                            res.send(500, err.message);
-                        res.status(200).send(filesftps);
-                    });
+            .sort({name: -1})
+            .exec(function(err, filesftps) {
+                if (err)
+                    res.send(500, err.message);
+                res.status(200).send(filesftps);
+            });
         }
     }
 }
@@ -217,7 +308,7 @@ exports.GetFtpsFiles = function(req, res) {
 /**
  * CountFtpsFiles
  */
-exports.CountFtpsFiles = function(req, res) {
+ exports.CountFtpsFiles = function(req, res) {
     var ftps = req.body;
     FtpFiles.count({}, function(err, allFiles) {
         FtpFiles.count({"ftp": {$in: ftps}}, function(err, count) {
@@ -232,7 +323,7 @@ exports.CountFtpsFiles = function(req, res) {
 /**
  * CountFtpsFiles
  */
-exports.getSizeFolder = function(req, res) {
+ exports.getSizeFolder = function(req, res) {
     var parms = req.query;
     if (useElastic) {
         elastic.getSizeFolder(parms, function(result) {
@@ -242,34 +333,34 @@ exports.getSizeFolder = function(req, res) {
         var join = parms.directory === '/' ? '' : '/';
         var query = {ftp: parms.ftp, directory: new RegExp('^' + parms.directory + join + parms.name + '.*$', "i"), extname: {$exists: true}};
         FtpFiles.find(query, {size: 1, extname: 1, time: 1})
-                .sort({time: -1})
-                .exec(function(err, files) {
-                    var lastUpdate = "";
-                    var pesa = 0;
-                    if (files.length > 0) {
-                        lastUpdate = files[0].time;
-                    }
-                    for (var file in files) {
-                        var num = isNaN(parseInt(files[file].size)) ? 0 : parseInt(files[file].size);
-                        pesa = pesa + num;
-                    }
+        .sort({time: -1})
+        .exec(function(err, files) {
+            var lastUpdate = "";
+            var pesa = 0;
+            if (files.length > 0) {
+                lastUpdate = files[0].time;
+            }
+            for (var file in files) {
+                var num = isNaN(parseInt(files[file].size)) ? 0 : parseInt(files[file].size);
+                pesa = pesa + num;
+            }
 
-                    FtpFiles.update(
-                            {_id: parms._id},
-                    {$set: {
-                            size: pesa,
-                            time: lastUpdate
-                        }
-                    }, function(err) {
-                        res.status(200).jsonp(pesa);
-                    });
-                });
+            FtpFiles.update(
+                {_id: parms._id},
+                {$set: {
+                    size: pesa,
+                    time: lastUpdate
+                }
+            }, function(err) {
+                res.status(200).jsonp(pesa);
+            });
+        });
     }
 }
 /**
  * DeleteFTP
  */
-exports.DeleteFTP = function(req, res) {
+ exports.DeleteFTP = function(req, res) {
     var ids = JSON.parse(req.params.parms);
     Ftp.remove({_id: {$in: ids}}, function(error) {
         if (error) {
@@ -297,8 +388,8 @@ exports.DeleteFTP = function(req, res) {
  * GetFtps
  */
 
-var listProvEscanner = new Array();
-var isServerEscanner = function(idServer) {
+ var listProvEscanner = new Array();
+ var isServerEscanner = function(idServer) {
     var index = listProvEscanner.indexOf(idServer);
     if (index === -1) {
         listProvEscanner.push(idServer);
@@ -328,23 +419,23 @@ exports.ScannerFtpServer = function(req, res) {
 
 var deleteDocumentFiles = function(idServer, next) {
     FtpFiles
-            .remove({ftp: idServer}, function(error) {
-                if (useElastic) {
-                    elastic.elasticDeleteFiles(idServer, function() {
-                        next();
-                    });
-                } else {
-                    next();
-                }
+    .remove({ftp: idServer}, function(error) {
+        if (useElastic) {
+            elastic.elasticDeleteFiles(idServer, function() {
+                next();
             });
+        } else {
+            next();
+        }
+    });
 }
 /**
  * ScannerFTP
  */
-var ScannerProveedor = function(ftp, errorCallback) {
+ var ScannerProveedor = function(ftp, errorCallback) {
     Ftp.findOne({_id: ftp._idServer})
-            .exec(function(err, result) {
-                if (ftp.complete === 'no') {
+    .exec(function(err, result) {
+        if (ftp.complete === 'no') {
                     // continuar escaneo
                     deleteDocumentFiles(result._id, function() {
                         sincroniceProveMongoFilesElasticSearch(result._id);
@@ -374,25 +465,25 @@ var scannerFTPoneThread = function(result, errorCallback) {
     folders.push(result.dirscan);
     var c = new Client();
 // connect to localhost:21 as anonymous
-    c.connect({
-        host: result.uri,
+c.connect({
+    host: result.uri,
         port: result.port != '' ? result.port : '', // defaults to 21
         user: result.user != '' ? result.user : '', // defaults to "anonymous"
         password: result.pass != '' ? result.pass : '',
     });
-    var files_scanner = new Array();
-    c.on('ready', function() {
-        errorCallback();
-        var exploreFolder = function() {
-            if (folders.length !== 0) {
-                var url = folders[0];
-                c.list(url, function(err, list) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        list.forEach(function(file) {
-                            var name = "";
-                            try {
+var files_scanner = new Array();
+c.on('ready', function() {
+    errorCallback();
+    var exploreFolder = function() {
+        if (folders.length !== 0) {
+            var url = folders[0];
+            c.list(url, function(err, list) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    list.forEach(function(file) {
+                        var name = "";
+                        try {
                                 // If the string is UTF-8, this will work and not throw an error.
                                 name = decodeURIComponent(escape(file.name));
                             } catch (e) {
@@ -425,7 +516,7 @@ var scannerFTPoneThread = function(result, errorCallback) {
                                 folders.push(newPaht);
                             }
                         });
-                    }
+}
                     // eliminar directorio de arreglo
                     folders.splice(0, 1);
                     // busca en la proxima carpeta
@@ -441,17 +532,17 @@ var scannerFTPoneThread = function(result, errorCallback) {
                     }
                 });
 
-            } else {
-                if (files_scanner.length > 0) {
-                    console.log("Quedaron archivos");
-                    insertDocumentFile(files_scanner, function() {
-                        files_scanner = new Array();
-                    });
-                }
-                c.end();
-                if (useElastic) {
-                    sincroniceProveMongoFilesElasticSearch(result._id)
-                }
+} else {
+    if (files_scanner.length > 0) {
+        console.log("Quedaron archivos");
+        insertDocumentFile(files_scanner, function() {
+            files_scanner = new Array();
+        });
+    }
+    c.end();
+    if (useElastic) {
+        sincroniceProveMongoFilesElasticSearch(result._id)
+    }
                 // desbloquear servidor para que pueda ser escaneado
                 freeServer(result._id);
                 var demoro = new Date().getTime() - timeConsult;
@@ -498,25 +589,25 @@ var sincroniceProveMongoFilesElasticSearch = function(idServer) {
                 FtpFiles.find({
                     ftp: idServer
                 })
-                        .select('-_id')
-                        .limit(perPage)
-                        .skip(skip)
-                        .exec(function(err, files) {
-                            if (files.length === 0) {
-                                console.log("terminado")
-                            } else {
-                                elastic.elasticInsert(files, function() {
-                                    skip = skip + perPage;
-                                    console.log("iteracion", page, "/", parseInt(numFilesTotales / perPage) + 1)
-                                    page++;
-                                    recurInsertBulk();
-                                })
-                            }
+                .select('-_id')
+                .limit(perPage)
+                .skip(skip)
+                .exec(function(err, files) {
+                    if (files.length === 0) {
+                        console.log("terminado")
+                    } else {
+                        elastic.elasticInsert(files, function() {
+                            skip = skip + perPage;
+                            console.log("iteracion", page, "/", parseInt(numFilesTotales / perPage) + 1)
+                            page++;
+                            recurInsertBulk();
                         })
+                    }
+                })
             }
             recurInsertBulk();
         });
-    });
+});
 }
 
 var isDir = function(url) {
@@ -531,7 +622,14 @@ function ValidURL(str) {
     }
 }
 var dirIsValid = function(dir, array) {
+
+
     if (typeof dir !== 'undefined') {
+
+          // bugs tables sort httserver hfs
+          if (dir.indexOf("?sort=")!==-1) {
+            return false;
+        }
         // los directorios hay que decodificarlos
         try {
             // If the string is UTF-8, this will work and not throw an error.
@@ -547,19 +645,19 @@ var dirIsValid = function(dir, array) {
     return false;
 }
 var convertToKB = function(size) {
-    size = size.trim();
-    if (!isNaN(parseInt(size))) {
-        var toKB = 1024 * 1024;
-        if (size[size.length - 1] === 'G') {
-            toKB = toKB * 1024;
+        size = size.trim();
+        if (isNaN(size)) {
+            var toKB = 1024 * 1024;
+            if (size[size.length - 1] === 'G') {
+                toKB = toKB * 1024;
+            }
+            if (size[size.length - 1] === 'K') {
+                toKB = 1;
+            }
+            var megas = size.substring(0, size.length - 1);
+            var num = isNaN(parseFloat(megas)) ? 0 : parseFloat(megas);
+            size= num * toKB;
         }
-        if (size[size.length - 1] === 'K') {
-            toKB = 1;
-        }
-        var megas = size.substring(0, size.length - 1);
-        var num = isNaN(parseFloat(megas)) ? 0 : parseFloat(megas);
-        return num * toKB;
-    }
     return size;
 }
 
@@ -601,7 +699,7 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
     if (proxy.enabled === 'active') {
         proxyUrl = proxy.url + ":" + proxy.port;
     }
-    var noValid = ['../', '..', '?C=N;O=A', '?C=M;O=A', '?C=S;O=A', '?=D;O=A', '?C=N;O=D', '?C=D;O=A', '#'];
+    var noValid = ['../', '..', '?C=N;O=A', '?C=M;O=A', '?C=S;O=A', '?=D;O=A', '?C=N;O=D', '?C=D;O=A', '#',];
     // directorios comunes a los que no se puede entrar
     var listDirertoryNotEnter = noValid;
     // directorios propios especificados por el usuario
@@ -692,7 +790,7 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
                                         var text = text.split(' ');
                                         var fecha = text[0] + ' ' + text[1];
                                         var size = text[text.length - 1];
-                                        size = convertToKB(size);
+                                        size = convertToKB(size,true);
                                         fecha = Date.parse(fecha);
                                     } catch (e) {
                                         console.log("algo no fue bien esto es obligado")
@@ -704,7 +802,7 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
                                         var size = $(element).parent().next().next().text();
                                         size = convertToKB(size);
                                         fecha = Date.parse(fecha);
-//                                        console.log(size, fecha)
+                                        //                                        console.log(size, fecha)
                                     }
                                 }
                                 var newFile = {
@@ -721,31 +819,52 @@ var scannerHTTPoneThread = function(result, proxy, errorCallback) {
                         }
                     }
                 });
-            }
-            retorn.abort();
-            retorn.destroy();
-            q.push(newUrls, function(err) {
-                console.log(result.uri + url + " escaneado");
-            });
-            insertDocumentFile(newFiles, function() {
+}
+retorn.abort();
+retorn.destroy();
+q.push(newUrls, function(err) {
+    console.log(result.uri + url + " escaneado");
+});
+insertDocumentFile(newFiles, function() {
 
-            });
-            callback();
-        })
-    }, result.thread);
+});
+callback();
+})
+}, result.thread);
 // cuando termine de escanear todo
-    q.drain = function() {
-        var demoro = new Date().getTime() - timeConsult;
-        demoro = demoro / 1000;
-        console.log('escaneado en', demoro, "segundos");
-        freeServer(result._id);
-        sincroniceProveMongoFilesElasticSearch(result._id);
-    }
+q.drain = function() {
+    var demoro = new Date().getTime() - timeConsult;
+    demoro = demoro / 1000;
+    console.log('escaneado en', demoro, "segundos");
+    freeServer(result._id);
+    sincroniceProveMongoFilesElasticSearch(result._id);
+}
 // empezando a escanear introducciendo el
 
-    q.unshift(result.dirscan, function(err) {
-        console.log('empezando el scanner', result.dirscan);
-    });
+// verificar si es internos
+
+if(result.uri==='http://internos.uci.cu'){
+    errorCallback();
+    console.log("internosss")
+    internos.scannerInternos(result._id,function(datos){
+        console.log(datos)
+        var insert = new Array();
+
+        for (var i in datos) {
+            insert.push(new FtpFiles(datos[i]));
+        }
+        async.mapLimit(insert, 10, function(document, next) {
+            document.save(next);
+        }, function() {
+            freeServer(result._id);
+            sincroniceProveMongoFilesElasticSearch(result._id);
+        });
+    })
+}else{
+   q.unshift(result.dirscan, function(err) {
+    console.log('empezando el scanner', result.dirscan);
+}); 
+}
 
 }
 
@@ -803,14 +922,14 @@ var scannerFTPRecursivo = function(result) {
                             exploreFolderRecur(newPaht);
                         }
                     });
-                    FtpFiles.collection.insert(files_scanner, function(callback) {
-                        console.log("Escaneado " + url);
-                    });
-                }
-            });
-        }
-        exploreFolderRecur(result.dirscan);
-    });
+FtpFiles.collection.insert(files_scanner, function(callback) {
+    console.log("Escaneado " + url);
+});
+}
+});
+}
+exploreFolderRecur(result.dirscan);
+});
 }
 var InstallInit = function() {
     setTimeout(function() {
@@ -819,23 +938,23 @@ var InstallInit = function() {
 //        })
 //        elastic.deleteIndex();
 
-        if (useElastic) {
-            elastic.indexExists().then(function(exists) {
-                if (exists) {
-                    listDefault();
-                } else {
-                    elastic.initIndex().then(elastic.initMapping).then(function() {
-                        elastic.elasticCountFiles(function(num) {
-
-                        })
-                        listDefault();
-                    });
-                }
-            })
-        } else {
+if (useElastic) {
+    elastic.indexExists().then(function(exists) {
+        if (exists) {
             listDefault();
+        } else {
+            elastic.initIndex().then(elastic.initMapping).then(function() {
+                elastic.elasticCountFiles(function(num) {
+
+                })
+                listDefault();
+            });
         }
-    }, 3000);
+    })
+} else {
+    listDefault();
+}
+}, 3000);
 }
 var listDefault = function() {
     var runScanner = function(err) {
@@ -880,22 +999,22 @@ var listDefault = function() {
                     query: 'a',
                     thread: 3
                 }
-            ]
-            for (var i in listProvDefault) {
-                var FtpModel = new Ftp(listProvDefault[i]);
-                FtpModel.save(function(err, ftp) {
-                    var provv = {
-                        _idServer: ftp._id,
-                        proxy: {
-                            enabled: 'none'
-                        }
-                    };
-                    ScannerProveedor(provv, runScanner);
-                });
+                ]
+                for (var i in listProvDefault) {
+                    var FtpModel = new Ftp(listProvDefault[i]);
+                    FtpModel.save(function(err, ftp) {
+                        var provv = {
+                            _idServer: ftp._id,
+                            proxy: {
+                                enabled: 'none'
+                            }
+                        };
+                        ScannerProveedor(provv, runScanner);
+                    });
+                }
+            } else {
+                console.log("ya hay proveedores en el sistema")
             }
-        } else {
-            console.log("ya hay proveedores en el sistema")
-        }
-    });
+        });
 }
 InstallInit();

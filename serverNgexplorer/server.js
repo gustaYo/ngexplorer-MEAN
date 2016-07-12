@@ -9,8 +9,15 @@ var mongoose = require("mongoose");
 var bcrypt = require('bcrypt-nodejs');
 var app = express();
 var config = require('./config.js');
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());
+
+
+app.use( bodyParser.json({limit: '50mb'}) );
+app.use(bodyParser.urlencoded({
+  limit: '50mb',
+  extended: true,
+  parameterLimit:50000
+}));
+
 //app.use(morgan("dev"));
 var http = require("http");
 // add https server
@@ -50,8 +57,7 @@ console.log(__dirname + '/public');
 app.set('ipaddr', address);
 app.set('port', config.porthttp);
 
-app.use(bodyParser.json({limit: '700mb'}));
-app.use(bodyParser.urlencoded({limit: '700mb', extended: true}));
+
 process.on('uncaughtException', function(err) {
     console.log(err);
 });

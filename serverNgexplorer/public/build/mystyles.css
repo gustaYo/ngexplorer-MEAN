@@ -1,0 +1,59 @@
+
+tr:hover{
+	background-color: #DAD9D9 !important;
+	cursor: pointer;
+}
+li:hover{
+	cursor: pointer;
+}
+
+
+
+.fade-transiton:{
+	transition: all 3s ease;
+}
+.fade-enter, .fade-leave{
+	opacity: 0;
+	transform: translate3d(10px, 0, 0);
+}
+
+.invisible{
+	display: none;
+}
+
+/*
+ * Off Canvas
+ * --------------------------------------------------
+ */
+ @media screen and (max-width: 768px) {
+ 	.row-offcanvas {
+ 		position: relative;
+ 		-webkit-transition: all 0.25s ease-out;
+ 		-moz-transition: all 0.25s ease-out;
+ 		transition: all 0.25s ease-out;
+ 	}
+
+ 	.row-offcanvas-right
+ 	.sidebar-offcanvas {
+ 		right: -50%; /* 6 columns */
+ 	}
+
+ 	.row-offcanvas-left
+ 	.sidebar-offcanvas {
+ 		left: -50%; /* 6 columns */
+ 	}
+
+ 	.row-offcanvas-right.active {
+ 		right: 50%; /* 6 columns */
+ 	}
+
+ 	.row-offcanvas-left.active {
+ 		left: 50%; /* 6 columns */
+ 	}
+
+ 	.sidebar-offcanvas {
+ 		position: absolute;
+ 		top: 0;
+ 		width: 50%; /* 6 columns */
+ 	}
+ }
