@@ -95,7 +95,7 @@ angular.module('ngExplorerApp')
                 };
                 $scope.SincronizeRemoteServer = function(ev, node) {
                     var useFullScreen = ($mdMedia('sm') || $mdMedia('xs')) && $scope.customFullscreen;
-                    $mdDialog.show({
+                    $mdDialog.show({Sinc
                         controller: RemoteSincronizeController,
                         templateUrl: 'views/sincronize.html',
                         parent: angular.element(document.body),

@@ -7,15 +7,15 @@ var config = {
 //  user: 'admin',
 //  pass: '123456'
         },
-        uri: 'mongodb://127.0.0.1/ngexplorerbd'
+        uri: process.env.MONGO_URL || 'mongodb://127.0.0.1/ngexplorercasa'
     },
     porthttps: 3020,
-    porthttp: 3010,
+    porthttp: process.env.PORT || 3010,
     elasticsearch: {
-        use: true,
+        use: false,
         config: {
             client: {
-                host: '10.55.11.3:9201',
+                host: '127.0.0.1:9200',
 //                log: 'trace',
             },
             indexName: "ftpfiledev"

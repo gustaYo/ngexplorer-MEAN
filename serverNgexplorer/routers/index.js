@@ -3,13 +3,14 @@
 module.exports = function(app, express) {
     var controllers = require('../controllers');
     app.route('/angular').get(function(req, res) {
-        res.render('index', {
-            user: {}
-        });
+        res.render('index');
     });
 // vue client
 app.route('/vue').get(function(req, res) {
     res.render('vueindex');
+});
+app.route('/vueq').get(function(req, res) {
+    res.render('vueqindex');
 });
 // react client
 app.route('/').get(function(req, res) {
@@ -17,16 +18,20 @@ app.route('/').get(function(req, res) {
     controllers.user.contadorVisitServer(req,function(stadist){
         console.log(stadist)
     })
-
-    res.render('reactindex');
+res.redirect('/vueq');
+    //res.render('reactindex');
 });
 app.route('/list').get(function(req, res) {
+res.redirect('/vue');
 
+/*
     controllers.user.contadorVisitServer(req,function(stadist){
         console.log(stadist)
     })
 
     res.render('reactindex');
+
+    */
 });
 app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");

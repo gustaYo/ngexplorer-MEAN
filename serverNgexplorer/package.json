@@ -1,5 +1,5 @@
 {
-  "name": "server-ng-explorer",
+  "name": "server-ngexplorer",
   "version": "1.0.0",
   "description": "backend MEAN de ngExplorer",
   "main": "server.js",
